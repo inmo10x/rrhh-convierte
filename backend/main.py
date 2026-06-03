@@ -9,9 +9,13 @@ from .routers import empleados, liquidaciones, finiquitos, previred
 
 app = FastAPI(title="RRHH Convierte", version="1.0.0")
 
+_allowed_origins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:8000"]
+if os.environ.get("RAILWAY_PUBLIC_DOMAIN"):
+    _allowed_origins.append(f"https://{os.environ['RAILWAY_PUBLIC_DOMAIN']}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8000"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
