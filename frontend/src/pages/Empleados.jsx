@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { empleadosApi } from "../api/client";
 
 const AFPS = ["Capital","Cuprum","Habitat","Modelo","PlanVital","ProVida","Uno"];
