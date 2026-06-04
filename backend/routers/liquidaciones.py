@@ -1,27 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import EmpleadoDB, LiquidacionDB, LiquidacionInput
+from ..models import EmpleadoDB, LiquidacionDB, LiquidacionInput, UserDB
 from ..calculators.liquidacion_calc import calcular_liquidacion
+from ..auth import get_current_user
+from .activity_log import registrar
 
 router = APIRouter(prefix="/liquidaciones", tags=["liquidaciones"])
 
 
 def _emp_to_params(emp: EmpleadoDB) -> dict:
     return {
-        "sueldo_base":           emp.sueldo_base,
-        "gratificacion_mensual": emp.gratificacion_mensual,
-        "bonos_fijos":           emp.bonos_fijos or [],
-        "colacion":              emp.colacion,
-        "movilizacion":          emp.movilizacion,
-        "afp":                   emp.afp,
-        "es_fonasa":             emp.es_fonasa,
+        "sueldo_base":            emp.sueldo_base,
+        "gratificacion_mensual":  emp.gratificacion_mensual,
+        "bonos_fijos":            emp.bonos_fijos or [],
+        "colacion":               emp.colacion,
+        "movilizacion":           emp.movilizacion,
+        "afp":                    emp.afp,
+        "es_fonasa":              emp.es_fonasa,
         "es_contrato_indefinido": emp.es_contrato_indefinido,
     }
 
 
 @router.post("/simular")
-def simular(data: LiquidacionInput, db: Session = Depends(get_db)):
+def simular(
+    data: LiquidacionInput,
+    db: Session = Depends(get_db),
+    _: UserDB = Depends(get_current_user),
+):
     emp = db.query(EmpleadoDB).filter(EmpleadoDB.id == data.empleado_id).first()
     if not emp:
         raise HTTPException(404, "Empleado no encontrado")
@@ -38,12 +44,15 @@ def simular(data: LiquidacionInput, db: Session = Depends(get_db)):
 
 
 @router.post("/guardar")
-def guardar(data: LiquidacionInput, db: Session = Depends(get_db)):
+def guardar(
+    data: LiquidacionInput,
+    db: Session = Depends(get_db),
+    user: UserDB = Depends(get_current_user),
+):
     emp = db.query(EmpleadoDB).filter(EmpleadoDB.id == data.empleado_id).first()
     if not emp:
         raise HTTPException(404, "Empleado no encontrado")
 
-    # Evitar duplicados
     existente = db.query(LiquidacionDB).filter(
         LiquidacionDB.empleado_id == data.empleado_id,
         LiquidacionDB.mes == data.mes,
@@ -80,11 +89,19 @@ def guardar(data: LiquidacionInput, db: Session = Depends(get_db)):
         )
         db.add(liq)
     db.commit()
+
+    registrar(db, user, "guardar", "liquidacion", liq.id,
+              f"{emp.nombre} — {data.mes}/{data.anio}")
     return {"ok": True, "id": liq.id, **result}
 
 
 @router.get("/mes/{anio}/{mes}")
-def por_mes(anio: int, mes: int, db: Session = Depends(get_db)):
+def por_mes(
+    anio: int,
+    mes: int,
+    db: Session = Depends(get_db),
+    _: UserDB = Depends(get_current_user),
+):
     liqs = db.query(LiquidacionDB).filter(
         LiquidacionDB.anio == anio,
         LiquidacionDB.mes == mes,
@@ -93,7 +110,11 @@ def por_mes(anio: int, mes: int, db: Session = Depends(get_db)):
 
 
 @router.get("/empleado/{empleado_id}")
-def por_empleado(empleado_id: int, db: Session = Depends(get_db)):
+def por_empleado(
+    empleado_id: int,
+    db: Session = Depends(get_db),
+    _: UserDB = Depends(get_current_user),
+):
     liqs = db.query(LiquidacionDB).filter(
         LiquidacionDB.empleado_id == empleado_id
     ).order_by(LiquidacionDB.anio.desc(), LiquidacionDB.mes.desc()).all()

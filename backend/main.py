@@ -4,8 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from .database import create_tables
+from .database import create_tables, SessionLocal
+from .models import UserDB
+from .auth import hash_password
 from .routers import empleados, liquidaciones, finiquitos, previred
+from .routers import auth as auth_router
+from .routers import activity_log as log_router
 
 app = FastAPI(title="RRHH Convierte", version="1.0.0")
 
@@ -21,15 +25,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(empleados.router,    prefix="/api")
-app.include_router(liquidaciones.router, prefix="/api")
-app.include_router(finiquitos.router,   prefix="/api")
-app.include_router(previred.router,     prefix="/api")
+app.include_router(empleados.router,       prefix="/api")
+app.include_router(liquidaciones.router,   prefix="/api")
+app.include_router(finiquitos.router,      prefix="/api")
+app.include_router(previred.router,        prefix="/api")
+app.include_router(auth_router.router,     prefix="/api")
+app.include_router(log_router.router,      prefix="/api")
 
 
 @app.on_event("startup")
 def startup():
     create_tables()
+    # Crear usuario admin por defecto si no existe ninguno
+    db = SessionLocal()
+    try:
+        if db.query(UserDB).count() == 0:
+            admin = UserDB(
+                nombre="Administrador",
+                username="admin",
+                hashed_password=hash_password("convierte2026"),
+            )
+            db.add(admin)
+            db.commit()
+    finally:
+        db.close()
 
 
 @app.get("/api/health")

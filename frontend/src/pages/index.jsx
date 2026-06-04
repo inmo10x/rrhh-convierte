@@ -8,8 +8,8 @@ const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov"
 
 export function Dashboard() {
   const hoy = new Date();
-  const [empleados, setEmpleados]   = useState([]);
-  const [liqs, setLiqs]             = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [liqs, setLiqs]           = useState([]);
 
   useEffect(() => {
     empleadosApi.listar().then(setEmpleados).catch(()=>{});
@@ -19,17 +19,17 @@ export function Dashboard() {
   const totalLiquidoMes = liqs.reduce((s, l) => s + (l.liquido_a_pagar || 0), 0);
 
   const stats = [
-    { label:"Empleados activos", value: empleados.length, icon: Users,       color:"bg-blue-50 text-blue-600"  },
-    { label:"Liquidaciones mes", value: liqs.length,      icon: Calculator,  color:"bg-green-50 text-green-600"},
-    { label:"Total líquido mes", value: fmt(totalLiquidoMes), icon: TrendingUp, color:"bg-purple-50 text-purple-600"},
-    { label:"Mes en curso",      value: `${MESES[hoy.getMonth()]} ${hoy.getFullYear()}`, icon: Calendar, color:"bg-amber-50 text-amber-600"},
+    { label:"Empleados activos", value: empleados.length,       icon: Users,      color:"bg-blue-900/30 text-blue-400"   },
+    { label:"Liquidaciones mes", value: liqs.length,            icon: Calculator, color:"bg-green-900/30 text-green-400" },
+    { label:"Total líquido mes", value: fmt(totalLiquidoMes),   icon: TrendingUp, color:"bg-brand-500/10 text-brand-400" },
+    { label:"Mes en curso",      value: `${MESES[hoy.getMonth()]} ${hoy.getFullYear()}`, icon: Calendar, color:"bg-purple-900/30 text-purple-400"},
   ];
 
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard RRHH</h1>
-        <p className="text-gray-500 text-sm">Agencia Convierte SPA · RUT 77.450.452-4</p>
+        <h1 className="text-2xl font-bold text-white">Dashboard RRHH</h1>
+        <p className="text-zinc-500 text-sm">Agencia Convierte SPA · RUT 77.450.452-4</p>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map(({ label, value, icon: Icon, color }) => (
@@ -37,33 +37,33 @@ export function Dashboard() {
             <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center mb-3`}>
               <Icon size={18}/>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-500 mt-1">{label}</p>
+            <p className="text-2xl font-bold text-white">{value}</p>
+            <p className="text-xs text-zinc-500 mt-1">{label}</p>
           </div>
         ))}
       </div>
 
       {empleados.length > 0 && (
         <div className="card p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-4">Equipo activo</p>
+          <p className="text-sm font-semibold text-zinc-300 mb-4">Equipo activo</p>
           <div className="space-y-3">
             {empleados.map(emp => {
               const liq = liqs.find(l => l.empleado_id === emp.id);
               return (
-                <div key={emp.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <div key={emp.id} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/20 flex items-center justify-center text-xs font-bold">
                       {emp.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{emp.nombre}</p>
-                      <p className="text-xs text-gray-400">{emp.cargo || "Sin cargo"}</p>
+                      <p className="text-sm font-medium text-white">{emp.nombre}</p>
+                      <p className="text-xs text-zinc-500">{emp.cargo || "Sin cargo"}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     {liq
-                      ? <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Liq. {fmt(liq.liquido_a_pagar)}</span>
-                      : <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">Pendiente</span>
+                      ? <span className="text-xs bg-green-900/40 text-green-400 px-2 py-1 rounded-full font-medium">Liq. {fmt(liq.liquido_a_pagar)}</span>
+                      : <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-1 rounded-full">Pendiente</span>
                     }
                   </div>
                 </div>
@@ -119,8 +119,8 @@ export function Previred() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Previred</h1>
-        <p className="text-gray-500 text-sm">Exportación de cotizaciones previsionales y de salud</p>
+        <h1 className="text-2xl font-bold text-white">Previred</h1>
+        <p className="text-zinc-500 text-sm">Exportación de cotizaciones previsionales y de salud</p>
       </div>
       <div className="card p-5">
         <div className="grid grid-cols-3 gap-4 items-end">
@@ -138,37 +138,37 @@ export function Previred() {
         </div>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">{error}</div>}
+      {error && <div className="bg-red-900/20 border border-red-800 text-red-400 rounded-xl p-4 text-sm">{error}</div>}
 
       {resumen && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              ["Empleados",    resumen.n_empleados, "text-gray-900"],
-              ["Total AFP",    fmt(resumen.total_afp),     "text-blue-700"],
-              ["Total Salud",  fmt(resumen.total_salud),   "text-green-700"],
-              ["Total AFC",    fmt(resumen.total_afc),     "text-purple-700"],
+              ["Empleados",   resumen.n_empleados,       "text-white"],
+              ["Total AFP",   fmt(resumen.total_afp),    "text-blue-400"],
+              ["Total Salud", fmt(resumen.total_salud),  "text-green-400"],
+              ["Total AFC",   fmt(resumen.total_afc),    "text-purple-400"],
             ].map(([k,v,c]) => (
               <div key={k} className="stat-card">
                 <p className={`text-2xl font-bold ${c}`}>{v}</p>
-                <p className="text-xs text-gray-500 mt-1">{k}</p>
+                <p className="text-xs text-zinc-500 mt-1">{k}</p>
               </div>
             ))}
           </div>
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <FileSpreadsheet size={20} className="text-green-600"/>
+                <FileSpreadsheet size={20} className="text-green-400"/>
                 <div>
-                  <p className="font-semibold text-sm">Archivo Previred listo</p>
-                  <p className="text-xs text-gray-400">previred_{anio}_{String(mes).padStart(2,"0")}.csv — {resumen.n_empleados} trabajadores</p>
+                  <p className="font-semibold text-sm text-white">Archivo Previred listo</p>
+                  <p className="text-xs text-zinc-500">previred_{anio}_{String(mes).padStart(2,"0")}.csv — {resumen.n_empleados} trabajadores</p>
                 </div>
               </div>
               <button onClick={exportar} disabled={descargando} className="btn-primary flex items-center gap-2">
                 <Download size={16}/>{descargando ? "Exportando..." : "Descargar CSV"}
               </button>
             </div>
-            <p className="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-zinc-500 bg-zinc-800 rounded-lg p-3">
               El archivo CSV incluye: RUT, nombre, AFP, renta imponible AFP, montos AFP (fondo + comisión), institución de salud, monto salud, AFC trabajador y AFC empleador. Compatible con importación directa en Previred.cl.
             </p>
           </div>

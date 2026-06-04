@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Date, JSON, ForeignKey, Text
 from sqlalchemy.orm import declarative_base, relationship
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from typing import Optional
 from datetime import date
 
@@ -8,6 +8,29 @@ Base = declarative_base()
 
 
 # ─── ORM Models ──────────────────────────────────────────────────────────────
+
+class UserDB(Base):
+    __tablename__ = "users"
+    id              = Column(Integer, primary_key=True, index=True)
+    nombre          = Column(String, nullable=False)
+    username        = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    activo          = Column(Boolean, default=True)
+    logs            = relationship("ActivityLogDB", back_populates="user")
+
+
+class ActivityLogDB(Base):
+    __tablename__ = "activity_logs"
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"))
+    user_nombre = Column(String)
+    accion      = Column(String)   # crear | editar | eliminar | guardar | generar | exportar
+    entidad     = Column(String)   # empleado | liquidacion | finiquito | previred
+    entidad_id  = Column(Integer, nullable=True)
+    detalle     = Column(String, nullable=True)
+    timestamp   = Column(String)
+    user        = relationship("UserDB", back_populates="logs")
+
 
 class EmpleadoDB(Base):
     __tablename__ = "empleados"
@@ -19,7 +42,7 @@ class EmpleadoDB(Base):
     centro_costo          = Column(String, default="Administración")
     sueldo_base           = Column(Float, nullable=False)
     gratificacion_mensual = Column(Float, default=0)
-    bonos_fijos           = Column(JSON, default=list)     # [{"nombre": str, "monto": float}]
+    bonos_fijos           = Column(JSON, default=list)
     colacion              = Column(Float, default=0)
     movilizacion          = Column(Float, default=0)
     afp                   = Column(String, default="ProVida")
@@ -45,7 +68,7 @@ class LiquidacionDB(Base):
     dias_mes       = Column(Integer, default=30)
     horas_extras   = Column(Float, default=0)
     comisiones     = Column(Float, default=0)
-    resultado      = Column(JSON)   # dict completo del cálculo
+    resultado      = Column(JSON)
     empleado       = relationship("EmpleadoDB", back_populates="liquidaciones")
 
 
@@ -109,3 +132,14 @@ class FiniquitoInput(BaseModel):
     fecha_primera_cuota: date
     ciudad_notaria: str = "Santiago"
     fecha_firma: Optional[date] = None
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class CreateUserRequest(BaseModel):
+    nombre: str
+    username: str
+    password: str

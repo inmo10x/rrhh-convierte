@@ -1,26 +1,50 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import Sidebar from "./components/Sidebar";
-import { Dashboard }    from "./pages/index";
-import Empleados        from "./pages/Empleados";
-import Liquidaciones    from "./pages/Liquidaciones";
-import Finiquitos       from "./pages/Finiquitos";
-import { Previred }     from "./pages/index";
+import Login from "./pages/Login";
+import { Dashboard } from "./pages/index";
+import Empleados    from "./pages/Empleados";
+import Liquidaciones from "./pages/Liquidaciones";
+import Finiquitos   from "./pages/Finiquitos";
+import { Previred } from "./pages/index";
+import ActivityLog  from "./pages/ActivityLog";
 
-export default function App() {
+function AppInner() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    );
+  }
+
+  if (!user) return <Login />;
+
   return (
     <BrowserRouter>
       <div className="flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-zinc-950">
           <Routes>
             <Route path="/"              element={<Dashboard />} />
             <Route path="/empleados"     element={<Empleados />} />
             <Route path="/liquidaciones" element={<Liquidaciones />} />
             <Route path="/finiquitos"    element={<Finiquitos />} />
             <Route path="/previred"      element={<Previred />} />
+            <Route path="/historial"     element={<ActivityLog />} />
           </Routes>
         </main>
       </div>
     </BrowserRouter>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }

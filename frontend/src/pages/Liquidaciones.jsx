@@ -62,11 +62,10 @@ export default function Liquidaciones() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Liquidaciones</h1>
-        <p className="text-gray-500 text-sm">Cálculo mensual con simulación en tiempo real</p>
+        <h1 className="text-2xl font-bold text-white">Liquidaciones</h1>
+        <p className="text-zinc-500 text-sm">Cálculo mensual con simulación en tiempo real</p>
       </div>
 
-      {/* Controles */}
       <div className="card p-5">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
@@ -93,7 +92,7 @@ export default function Liquidaciones() {
         </div>
 
         {empId && (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-zinc-800">
             <div>
               <label className="label">Días trabajados</label>
               <input className="input" type="number" value={dias.trabajados} onChange={e => setDias(d => ({...d, trabajados: Number(e.target.value)}))}/>
@@ -114,14 +113,18 @@ export default function Liquidaciones() {
         )}
       </div>
 
-      {/* Resultado */}
-      {loading && <div className="text-center py-12 text-gray-400"><RefreshCw size={24} className="mx-auto animate-spin mb-2"/><p>Calculando...</p></div>}
+      {loading && (
+        <div className="text-center py-12 text-zinc-500">
+          <RefreshCw size={24} className="mx-auto animate-spin mb-2"/>
+          <p>Calculando...</p>
+        </div>
+      )}
 
       {resultado && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {/* Haberes */}
           <div className="card p-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Haberes</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Haberes</p>
             <div className="space-y-2 text-sm">
               {[
                 ["Sueldo del mes",    resultado.sueldo_mes],
@@ -132,20 +135,20 @@ export default function Liquidaciones() {
                 ["Movilización",      resultado.movilizacion],
               ].map(([k,v]) => v > 0 && (
                 <div key={k} className="flex justify-between">
-                  <span className="text-gray-600">{k}</span>
-                  <span className="font-medium">{fmt(v)}</span>
+                  <span className="text-zinc-400">{k}</span>
+                  <span className="font-medium text-white">{fmt(v)}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-gray-100 font-semibold">
-                <span>Total haberes</span>
-                <span className="text-brand-600">{fmt(resultado.total_haberes)}</span>
+              <div className="flex justify-between pt-2 border-t border-zinc-800 font-semibold">
+                <span className="text-zinc-300">Total haberes</span>
+                <span className="text-brand-400">{fmt(resultado.total_haberes)}</span>
               </div>
             </div>
           </div>
 
           {/* Descuentos */}
           <div className="card p-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Descuentos</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Descuentos</p>
             <div className="space-y-2 text-sm">
               {[
                 ["AFP (fondo pensiones)", resultado.fondo_pensiones],
@@ -155,13 +158,13 @@ export default function Liquidaciones() {
                 ["Impuesto único",        resultado.impuesto_unico],
               ].map(([k,v]) => v > 0 && (
                 <div key={k} className="flex justify-between">
-                  <span className="text-gray-600">{k}</span>
-                  <span className="font-medium text-red-600">{fmt(v)}</span>
+                  <span className="text-zinc-400">{k}</span>
+                  <span className="font-medium text-red-400">{fmt(v)}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-gray-100 font-semibold">
-                <span>Total descuentos</span>
-                <span className="text-red-600">{fmt(resultado.total_descuentos)}</span>
+              <div className="flex justify-between pt-2 border-t border-zinc-800 font-semibold">
+                <span className="text-zinc-300">Total descuentos</span>
+                <span className="text-red-400">{fmt(resultado.total_descuentos)}</span>
               </div>
             </div>
           </div>
@@ -169,30 +172,32 @@ export default function Liquidaciones() {
           {/* Resumen */}
           <div className="card p-5 flex flex-col justify-between">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Resumen</p>
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Resumen</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Imponible</span>
-                  <span>{fmt(resultado.haberes_imponibles)}</span>
+                  <span className="text-zinc-400">Imponible</span>
+                  <span className="text-white">{fmt(resultado.haberes_imponibles)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Base tributable</span>
-                  <span>{fmt(resultado.base_tributable)}</span>
+                  <span className="text-zinc-400">Base tributable</span>
+                  <span className="text-white">{fmt(resultado.base_tributable)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Días trabajados</span>
-                  <span>{resultado.dias_trabajados}</span>
+                  <span className="text-zinc-400">Días trabajados</span>
+                  <span className="text-white">{resultado.dias_trabajados}</span>
                 </div>
               </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Líquido a pagar</p>
-              <p className="text-3xl font-bold text-brand-600">{fmt(resultado.liquido_a_pagar)}</p>
-              <p className="text-xs text-gray-400 mt-1">{empSel?.nombre}</p>
+            <div className="mt-4 pt-4 border-t border-zinc-800">
+              <p className="text-xs text-zinc-500 mb-1">Líquido a pagar</p>
+              <p className="text-3xl font-bold text-brand-400">{fmt(resultado.liquido_a_pagar)}</p>
+              <p className="text-xs text-zinc-500 mt-1">{empSel?.nombre}</p>
             </div>
             <button onClick={guardar} disabled={guardando || guardado}
               className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                guardado ? "bg-green-50 text-green-700 border border-green-200" : "btn-primary"
+                guardado
+                  ? "bg-green-900/30 text-green-400 border border-green-800"
+                  : "btn-primary"
               }`}>
               <Save size={15}/>
               {guardado ? "¡Guardado!" : guardando ? "Guardando..." : "Guardar liquidación"}

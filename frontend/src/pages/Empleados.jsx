@@ -16,7 +16,7 @@ const fmt = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
-  const [form, setForm] = useState(null);   // null = cerrado, {} = editando
+  const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expandido, setExpandido] = useState(null);
 
@@ -25,8 +25,7 @@ export default function Empleados() {
   useEffect(() => { cargar(); }, []);
 
   const abrirNuevo = () => setForm({ ...EMPTY });
-  const abrirEditar = (emp) => setForm({
-    ...emp,
+  const abrirEditar = (emp) => setForm({ ...emp,
     fecha_inicio: emp.fecha_inicio,
     sueldo_base: emp.sueldo_base,
     gratificacion_mensual: emp.gratificacion_mensual,
@@ -80,8 +79,8 @@ export default function Empleados() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Empleados</h1>
-          <p className="text-gray-500 text-sm">{empleados.length} activos</p>
+          <h1 className="text-2xl font-bold text-white">Empleados</h1>
+          <p className="text-zinc-500 text-sm">{empleados.length} activos</p>
         </div>
         <button onClick={abrirNuevo} className="btn-primary flex items-center gap-2">
           <Plus size={16} /> Nuevo empleado
@@ -89,42 +88,42 @@ export default function Empleados() {
       </div>
 
       {/* Lista */}
-      <div className="card divide-y divide-gray-50">
+      <div className="card divide-y divide-zinc-800">
         {empleados.length === 0 && (
-          <div className="p-12 text-center text-gray-400">
+          <div className="p-12 text-center text-zinc-500">
             <Users size={40} className="mx-auto mb-3 opacity-30" />
             <p>No hay empleados registrados</p>
           </div>
         )}
         {empleados.map(emp => (
           <div key={emp.id}>
-            <div className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">
+            <div className="flex items-center gap-4 p-4 hover:bg-zinc-800/50 transition-colors">
+              <div className="w-10 h-10 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/20 flex items-center justify-center font-bold text-sm">
                 {emp.nombre.split(" ").map(w => w[0]).slice(0,2).join("")}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{emp.nombre}</p>
-                <p className="text-xs text-gray-500">{emp.rut} · {emp.cargo || "Sin cargo"}</p>
+                <p className="font-medium text-white truncate">{emp.nombre}</p>
+                <p className="text-xs text-zinc-500">{emp.rut} · {emp.cargo || "Sin cargo"}</p>
               </div>
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-gray-900">{fmt(emp.sueldo_base)}</p>
-                <p className="text-xs text-gray-400">base cálculo {fmt(baseCalculo(emp))}</p>
+                <p className="text-sm font-semibold text-white">{fmt(emp.sueldo_base)}</p>
+                <p className="text-xs text-zinc-500">base cálculo {fmt(baseCalculo(emp))}</p>
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setExpandido(expandido === emp.id ? null : emp.id)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                  className="p-2 text-zinc-500 hover:text-zinc-300 rounded-lg hover:bg-zinc-700">
                   {expandido === emp.id ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                 </button>
-                <button onClick={() => abrirEditar(emp)} className="p-2 text-gray-400 hover:text-brand-500 rounded-lg hover:bg-gray-100">
+                <button onClick={() => abrirEditar(emp)} className="p-2 text-zinc-500 hover:text-brand-400 rounded-lg hover:bg-zinc-700">
                   <Edit2 size={16}/>
                 </button>
-                <button onClick={() => eliminar(emp.id, emp.nombre)} className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-100">
+                <button onClick={() => eliminar(emp.id, emp.nombre)} className="p-2 text-zinc-500 hover:text-red-400 rounded-lg hover:bg-zinc-700">
                   <Trash2 size={16}/>
                 </button>
               </div>
             </div>
             {expandido === emp.id && (
-              <div className="px-16 pb-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm bg-gray-50">
+              <div className="px-16 pb-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm bg-zinc-800/30">
                 {[
                   ["Sueldo base", fmt(emp.sueldo_base)],
                   ["Gratificación", fmt(emp.gratificacion_mensual)],
@@ -135,16 +134,16 @@ export default function Empleados() {
                   ["Feriado tomado", `${emp.dias_feriado_tomados} días`],
                   ["Banco", `${emp.cuenta_banco} · ${emp.cuenta_numero}`],
                 ].map(([k, v]) => (
-                  <div key={k}>
-                    <p className="text-xs text-gray-400">{k}</p>
-                    <p className="font-medium">{v}</p>
+                  <div key={k} className="py-2">
+                    <p className="text-xs text-zinc-500">{k}</p>
+                    <p className="font-medium text-zinc-200">{v}</p>
                   </div>
                 ))}
                 {(emp.bonos_fijos || []).length > 0 && (
-                  <div className="col-span-2">
-                    <p className="text-xs text-gray-400 mb-1">Bonos fijos</p>
+                  <div className="col-span-2 py-2">
+                    <p className="text-xs text-zinc-500 mb-1">Bonos fijos</p>
                     {emp.bonos_fijos.map((b,i) => (
-                      <p key={i} className="font-medium">{b.nombre}: {fmt(b.monto)}</p>
+                      <p key={i} className="font-medium text-zinc-200">{b.nombre}: {fmt(b.monto)}</p>
                     ))}
                   </div>
                 )}
@@ -156,11 +155,11 @@ export default function Empleados() {
 
       {/* Modal formulario */}
       {form && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold">{form.id ? "Editar empleado" : "Nuevo empleado"}</h2>
-              <button onClick={() => setForm(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18}/></button>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-gold-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+              <h2 className="text-lg font-bold text-white">{form.id ? "Editar empleado" : "Nuevo empleado"}</h2>
+              <button onClick={() => setForm(null)} className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white"><X size={18}/></button>
             </div>
             <div className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
@@ -186,8 +185,8 @@ export default function Empleados() {
                 </div>
               </div>
 
-              <hr className="border-gray-100"/>
-              <p className="text-sm font-semibold text-gray-700">Remuneraciones</p>
+              <hr className="border-zinc-800"/>
+              <p className="text-sm font-semibold text-zinc-300">Remuneraciones</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">Sueldo base *</label>
@@ -209,20 +208,20 @@ export default function Empleados() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-gray-700">Bonos fijos</p>
-                  <button onClick={agregarBono} className="text-xs text-brand-500 hover:text-brand-700 font-medium">+ Agregar bono</button>
+                  <p className="text-sm font-semibold text-zinc-300">Bonos fijos</p>
+                  <button onClick={agregarBono} className="text-xs text-brand-400 hover:text-brand-300 font-medium">+ Agregar bono</button>
                 </div>
                 {(form.bonos_fijos || []).map((b, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <input className="input flex-1" placeholder="Nombre del bono" value={b.nombre} onChange={e => setBono(i,"nombre",e.target.value)}/>
                     <input className="input w-36" type="number" placeholder="Monto" value={b.monto} onChange={e => setBono(i,"monto",e.target.value)}/>
-                    <button onClick={() => eliminarBono(i)} className="p-2 text-red-400 hover:text-red-600"><X size={16}/></button>
+                    <button onClick={() => eliminarBono(i)} className="p-2 text-red-400 hover:text-red-300"><X size={16}/></button>
                   </div>
                 ))}
               </div>
 
-              <hr className="border-gray-100"/>
-              <p className="text-sm font-semibold text-gray-700">Previsión y salud</p>
+              <hr className="border-zinc-800"/>
+              <p className="text-sm font-semibold text-zinc-300">Previsión y salud</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">AFP</label>
@@ -233,10 +232,10 @@ export default function Empleados() {
                 <div>
                   <label className="label">Salud</label>
                   <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
                       <input type="radio" checked={form.es_fonasa} onChange={() => set("es_fonasa", true)}/> Fonasa
                     </label>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
                       <input type="radio" checked={!form.es_fonasa} onChange={() => set("es_fonasa", false)}/> Isapre
                     </label>
                   </div>
@@ -244,10 +243,10 @@ export default function Empleados() {
                 <div>
                   <label className="label">Tipo contrato</label>
                   <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
                       <input type="radio" checked={form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", true)}/> Indefinido
                     </label>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
                       <input type="radio" checked={!form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", false)}/> Plazo fijo
                     </label>
                   </div>
@@ -258,8 +257,8 @@ export default function Empleados() {
                 </div>
               </div>
 
-              <hr className="border-gray-100"/>
-              <p className="text-sm font-semibold text-gray-700">Cuenta bancaria</p>
+              <hr className="border-zinc-800"/>
+              <p className="text-sm font-semibold text-zinc-300">Cuenta bancaria</p>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="label">Banco</label>
@@ -277,7 +276,7 @@ export default function Empleados() {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
+            <div className="flex justify-end gap-3 p-6 border-t border-zinc-800">
               <button onClick={() => setForm(null)} className="btn-secondary">Cancelar</button>
               <button onClick={guardar} disabled={loading} className="btn-primary flex items-center gap-2">
                 <Save size={16}/> {loading ? "Guardando..." : "Guardar"}

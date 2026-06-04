@@ -78,14 +78,14 @@ export default function Finiquitos() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Finiquitos</h1>
-        <p className="text-gray-500 text-sm">Calculadora según Código del Trabajo chileno</p>
+        <h1 className="text-2xl font-bold text-white">Finiquitos</h1>
+        <p className="text-zinc-500 text-sm">Calculadora según Código del Trabajo chileno</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Formulario */}
         <div className="card p-5 space-y-4">
-          <p className="text-sm font-semibold text-gray-700">Datos del término</p>
+          <p className="text-sm font-semibold text-zinc-300">Datos del término</p>
           <div>
             <label className="label">Empleado</label>
             <select className="input" value={empId} onChange={e => setEmpId(e.target.value)}>
@@ -94,7 +94,7 @@ export default function Finiquitos() {
             </select>
           </div>
           {empSel && (
-            <div className="bg-brand-50 rounded-lg p-3 text-xs text-brand-700 space-y-1">
+            <div className="bg-brand-500/5 border border-brand-500/15 rounded-lg p-3 text-xs text-brand-400 space-y-1">
               <p>Inicio: <strong>{empSel.fecha_inicio}</strong></p>
               <p>Base cálculo: <strong>{fmt((empSel.sueldo_base||0) + (empSel.gratificacion_mensual||0) + (empSel.bonos_fijos||[]).reduce((s,b)=>s+b.monto,0))}</strong></p>
               <p>Feriado tomado: <strong>{empSel.dias_feriado_tomados} días</strong></p>
@@ -113,12 +113,12 @@ export default function Finiquitos() {
             </div>
           </div>
           <div>
-            <label className="label">Feriado proporcional ($) <span className="text-gray-400 font-normal">— dejar vacío para calcular automáticamente</span></label>
-            <input className="input" type="number" value={feriadoOverride} onChange={e => setFeriadoOverride(e.target.value)} placeholder="Ingresar monto de contabilidad si lo tienes"/>
+            <label className="label">Feriado proporcional ($) <span className="text-zinc-600 font-normal">— dejar vacío para calcular automáticamente</span></label>
+            <input className="input" type="number" value={feriadoOverride} onChange={e => setFeriadoOverride(e.target.value)} placeholder="Ingresar monto si lo tienes de contabilidad"/>
           </div>
 
-          <hr className="border-gray-100"/>
-          <p className="text-sm font-semibold text-gray-700">Pago en cuotas</p>
+          <hr className="border-zinc-800"/>
+          <p className="text-sm font-semibold text-zinc-300">Pago en cuotas</p>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="label">N° cuotas</label>
@@ -140,68 +140,66 @@ export default function Finiquitos() {
         {/* Resultado */}
         <div className="space-y-4">
           {loading && (
-            <div className="card p-12 text-center text-gray-400">
+            <div className="card p-12 text-center text-zinc-500">
               <RefreshCw size={24} className="mx-auto animate-spin mb-2"/>
               <p>Calculando...</p>
             </div>
           )}
           {resultado && !loading && (
             <>
-              {/* Alerta fracción */}
               {anos?.fraccion_redondeada && (
-                <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+                <div className="flex gap-3 bg-amber-900/20 border border-amber-800 rounded-xl p-4 text-sm text-amber-400">
                   <AlertCircle size={18} className="shrink-0 mt-0.5"/>
                   <p>La fracción de {anos.meses_fraccion} meses y {anos.dias_fraccion} días <strong>supera 6 meses</strong>, por lo que se redondea al año siguiente (Art. 163 CT).</p>
                 </div>
               )}
 
               <div className="card p-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Liquidación del finiquito</p>
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-4">Liquidación del finiquito</p>
                 <div className="space-y-3 text-sm">
                   {resultado.feriado_proporcional?.monto > 0 && (
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-gray-800">Feriado proporcional</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-zinc-300">Feriado proporcional</p>
+                        <p className="text-xs text-zinc-500">
                           {resultado.feriado_proporcional.fuente === "contabilidad"
                             ? "Según contabilidad"
                             : `${resultado.feriado_proporcional.dias_pendientes} días hábiles pendientes`}
                         </p>
                       </div>
-                      <span className="font-semibold">{fmt(resultado.feriado_proporcional.monto)}</span>
+                      <span className="font-semibold text-white">{fmt(resultado.feriado_proporcional.monto)}</span>
                     </div>
                   )}
                   {resultado.indemnizacion_anos > 0 && (
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-gray-800">Indemnización por años de servicio</p>
-                        <p className="text-xs text-gray-400">{anos?.anos_indemnizacion} {anos?.anos_indemnizacion === 1 ? "año" : "años"} × {fmt(resultado.base_indemnizacion)}</p>
+                        <p className="text-zinc-300">Indemnización por años de servicio</p>
+                        <p className="text-xs text-zinc-500">{anos?.anos_indemnizacion} {anos?.anos_indemnizacion === 1 ? "año" : "años"} × {fmt(resultado.base_indemnizacion)}</p>
                       </div>
-                      <span className="font-semibold">{fmt(resultado.indemnizacion_anos)}</span>
+                      <span className="font-semibold text-white">{fmt(resultado.indemnizacion_anos)}</span>
                     </div>
                   )}
                   {resultado.indemnizacion_aviso > 0 && (
                     <div className="flex justify-between">
-                      <p className="text-gray-800">Indemnización sustitutiva aviso previo</p>
-                      <span className="font-semibold">{fmt(resultado.indemnizacion_aviso)}</span>
+                      <p className="text-zinc-300">Indemnización sustitutiva aviso previo</p>
+                      <span className="font-semibold text-white">{fmt(resultado.indemnizacion_aviso)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between pt-3 border-t border-gray-100 text-base font-bold">
-                    <span>TOTAL</span>
-                    <span className="text-brand-600">{fmt(resultado.total)}</span>
+                  <div className="flex justify-between pt-3 border-t border-zinc-800 text-base font-bold">
+                    <span className="text-white">TOTAL</span>
+                    <span className="text-brand-400">{fmt(resultado.total)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Cuotas */}
               {resultado.cuotas?.length > 0 && (
                 <div className="card p-5">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Plan de pago</p>
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Plan de pago</p>
                   <div className="space-y-2">
                     {resultado.cuotas.map(c => (
                       <div key={c.numero} className="flex justify-between text-sm">
-                        <span className="text-gray-600">Cuota {c.numero} — {c.fecha}</span>
-                        <span className="font-semibold">{fmt(c.monto)}</span>
+                        <span className="text-zinc-400">Cuota {c.numero} — {c.fecha}</span>
+                        <span className="font-semibold text-white">{fmt(c.monto)}</span>
                       </div>
                     ))}
                   </div>
