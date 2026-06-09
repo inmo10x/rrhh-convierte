@@ -24,20 +24,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4
+                    bg-zinc-50 dark:bg-zinc-950 transition-colors duration-200">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 mb-4 shadow-gold-lg">
             <span className="text-brand-500 text-2xl font-bold">R</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">RRHH Convierte</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">RRHH Convierte</h1>
           <p className="text-zinc-500 text-sm mt-1">Agencia Convierte SPA</p>
         </div>
 
         {/* Card */}
         <div className="card p-6 space-y-5">
-          <p className="text-sm font-semibold text-zinc-300">Iniciar sesión</p>
+          <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Iniciar sesión</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -87,7 +88,7 @@ export default function Login() {
           </form>
         </div>
 
-        <p className="text-center text-zinc-600 text-xs mt-6">
+        <p className="text-center text-zinc-400 dark:text-zinc-600 text-xs mt-6">
           © 2026 Agencia Convierte SPA
         </p>
       </div>

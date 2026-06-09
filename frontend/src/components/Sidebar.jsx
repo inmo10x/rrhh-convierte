@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { Users, FileText, Calculator, Download, LayoutDashboard, Clock, LogOut } from "lucide-react";
+import { Users, FileText, Calculator, Download, LayoutDashboard, Clock, LogOut, Sun, Moon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 const links = [
   { to: "/",              icon: LayoutDashboard, label: "Dashboard"     },
@@ -13,17 +14,21 @@ const links = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
-    <aside className="w-56 min-h-screen bg-zinc-950 border-r border-zinc-800 flex flex-col">
+    <aside className="w-56 min-h-screen flex flex-col border-r transition-colors duration-200
+                      bg-white border-zinc-200
+                      dark:bg-zinc-950 dark:border-zinc-800">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-zinc-800">
+      <div className="px-5 py-5 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
             <span className="text-brand-500 text-sm font-bold">R</span>
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight">RRHH</p>
+            <p className="font-bold text-sm leading-tight text-zinc-900 dark:text-white">RRHH</p>
             <p className="text-zinc-500 text-xs">Convierte</p>
           </div>
         </div>
@@ -39,8 +44,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-brand-500/15 text-brand-400 border border-brand-500/20"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  ? "bg-brand-500/15 text-brand-500 border border-brand-500/20"
+                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
               }`
             }
           >
@@ -50,15 +55,36 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* User + logout */}
-      <div className="px-3 py-4 border-t border-zinc-800 space-y-2">
-        <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+        {/* Toggle claro/oscuro */}
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm
+                     font-medium transition-colors
+                     text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100
+                     dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
+        >
+          {isDark
+            ? <><Sun size={14} className="text-brand-500"/> Modo claro</>
+            : <><Moon size={14} className="text-brand-500"/> Modo oscuro</>
+          }
+        </button>
+
+        {/* Usuario */}
+        <div className="px-3 py-2 rounded-lg bg-zinc-100 border border-zinc-200
+                        dark:bg-zinc-900 dark:border-zinc-800">
           <p className="text-xs text-zinc-400">Conectado como</p>
-          <p className="text-sm font-medium text-white truncate">{user?.nombre}</p>
+          <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">{user?.nombre}</p>
         </div>
+
+        {/* Logout */}
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors text-sm"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
+                     text-zinc-500 hover:text-red-500 hover:bg-red-50
+                     dark:hover:text-red-400 dark:hover:bg-zinc-800
+                     transition-colors text-sm"
         >
           <LogOut size={14}/>
           Cerrar sesión

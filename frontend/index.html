@@ -1,9 +1,15 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RRHH Convierte</title>
+    <!-- Aplica tema antes de que React cargue para evitar flash -->
+    <script>
+      const t = localStorage.getItem("rrhh_theme") || "dark";
+      if (t === "dark") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
   </head>
   <body>
     <div id="root"></div>
