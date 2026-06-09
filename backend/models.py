@@ -52,6 +52,11 @@ class EmpleadoDB(Base):
     cuenta_banco          = Column(String, default="")
     cuenta_tipo           = Column(String, default="Cuenta RUT")
     cuenta_numero         = Column(String, default="")
+    # Trabajadores extranjeros
+    es_extranjero         = Column(Boolean, default=False)
+    pais                  = Column(String, default="Chile")
+    moneda                = Column(String, default="CLP")   # "CLP" o "USD"
+    forma_pago            = Column(String, default="Transferencia bancaria")
     activo                = Column(Boolean, default=True)
     liquidaciones         = relationship("LiquidacionDB", back_populates="empleado", cascade="all, delete")
 
@@ -97,6 +102,10 @@ class EmpleadoCreate(BaseModel):
     cuenta_banco: str = ""
     cuenta_tipo: str = "Cuenta RUT"
     cuenta_numero: str = ""
+    es_extranjero: bool = False
+    pais: str = "Chile"
+    moneda: str = "CLP"
+    forma_pago: str = "Transferencia bancaria"
 
 
 class EmpleadoUpdate(EmpleadoCreate):

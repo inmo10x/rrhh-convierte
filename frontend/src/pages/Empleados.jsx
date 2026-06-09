@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Users, Globe } from "lucide-react";
 import { empleadosApi } from "../api/client";
 
 const AFPS = ["Capital","Cuprum","Habitat","Modelo","PlanVital","ProVida","Uno"];
 const CAUSALES_BANCO = ["Cuenta RUT","Cuenta Corriente","Cuenta Vista","Cuenta Ahorro"];
+const FORMAS_PAGO = ["Global66","Transferencia bancaria","Wise","PayPal","Efectivo","Otro"];
+const PAISES = [
+  "Argentina","Bolivia","Brasil","Chile","Colombia","Costa Rica","Cuba","Ecuador",
+  "El Salvador","España","Guatemala","Honduras","México","Nicaragua","Panamá",
+  "Paraguay","Perú","República Dominicana","Uruguay","Venezuela","Otro",
+];
 
 const EMPTY = {
   nombre:"", rut:"", fecha_inicio:"", cargo:"", centro_costo:"Administración",
   sueldo_base:"", gratificacion_mensual:"", bonos_fijos:[], colacion:"",
   movilizacion:"", afp:"ProVida", es_fonasa:true, es_contrato_indefinido:true,
   dias_feriado_tomados:0, cuenta_banco:"Banco Estado", cuenta_tipo:"Cuenta RUT", cuenta_numero:"",
+  es_extranjero:false, pais:"Chile", moneda:"CLP", forma_pago:"Transferencia bancaria",
 };
 
 const fmt = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
@@ -102,7 +109,14 @@ export default function Empleados() {
                 {emp.nombre.split(" ").map(w => w[0]).slice(0,2).join("")}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-white truncate">{emp.nombre}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-white truncate">{emp.nombre}</p>
+                  {emp.es_extranjero && (
+                    <span className="text-xs bg-blue-900/40 text-blue-400 border border-blue-800/50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                      <Globe size={10}/> {emp.pais}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-500">{emp.rut} · {emp.cargo || "Sin cargo"}</p>
               </div>
               <div className="text-right hidden sm:block">
@@ -132,7 +146,8 @@ export default function Empleados() {
                   ["Salud", emp.es_fonasa ? "Fonasa" : "Isapre"],
                   ["Inicio", emp.fecha_inicio],
                   ["Feriado tomado", `${emp.dias_feriado_tomados} días`],
-                  ["Banco", `${emp.cuenta_banco} · ${emp.cuenta_numero}`],
+                  ["Banco", emp.es_extranjero ? emp.forma_pago : `${emp.cuenta_banco} · ${emp.cuenta_numero}`],
+                  ...(emp.es_extranjero ? [["País", emp.pais], ["Moneda", emp.moneda]] : []),
                 ].map(([k, v]) => (
                   <div key={k} className="py-2">
                     <p className="text-xs text-zinc-500">{k}</p>
@@ -221,60 +236,122 @@ export default function Empleados() {
               </div>
 
               <hr className="border-zinc-800"/>
-              <p className="text-sm font-semibold text-zinc-300">Previsión y salud</p>
-              <div className="grid grid-cols-2 gap-4">
+              {/* Toggle extranjero */}
+              <div className="flex items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-3">
                 <div>
-                  <label className="label">AFP</label>
-                  <select className="input" value={form.afp} onChange={e => set("afp", e.target.value)}>
-                    {AFPS.map(a => <option key={a}>{a}</option>)}
-                  </select>
+                  <p className="text-sm font-semibold text-zinc-300 flex items-center gap-2"><Globe size={15} className="text-blue-400"/> Trabajador extranjero</p>
+                  <p className="text-xs text-zinc-500">Pago en USD, sin descuentos legales chilenos</p>
                 </div>
-                <div>
-                  <label className="label">Salud</label>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
-                      <input type="radio" checked={form.es_fonasa} onChange={() => set("es_fonasa", true)}/> Fonasa
-                    </label>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
-                      <input type="radio" checked={!form.es_fonasa} onChange={() => set("es_fonasa", false)}/> Isapre
-                    </label>
-                  </div>
-                </div>
-                <div>
-                  <label className="label">Tipo contrato</label>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
-                      <input type="radio" checked={form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", true)}/> Indefinido
-                    </label>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
-                      <input type="radio" checked={!form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", false)}/> Plazo fijo
-                    </label>
-                  </div>
-                </div>
-                <div>
-                  <label className="label">Días feriado tomados</label>
-                  <input className="input" type="number" value={form.dias_feriado_tomados} onChange={e => set("dias_feriado_tomados", e.target.value)}/>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => set("es_extranjero", !form.es_extranjero)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${form.es_extranjero ? "bg-blue-600" : "bg-zinc-600"}`}
+                >
+                  <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${form.es_extranjero ? "translate-x-5" : ""}`}/>
+                </button>
               </div>
 
-              <hr className="border-zinc-800"/>
-              <p className="text-sm font-semibold text-zinc-300">Cuenta bancaria</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="label">Banco</label>
-                  <input className="input" value={form.cuenta_banco} onChange={e => set("cuenta_banco", e.target.value)} placeholder="Banco Estado"/>
-                </div>
-                <div>
-                  <label className="label">Tipo</label>
-                  <select className="input" value={form.cuenta_tipo} onChange={e => set("cuenta_tipo", e.target.value)}>
-                    {CAUSALES_BANCO.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="label">Número</label>
-                  <input className="input" value={form.cuenta_numero} onChange={e => set("cuenta_numero", e.target.value)}/>
-                </div>
-              </div>
+              {form.es_extranjero ? (
+                <>
+                  <p className="text-sm font-semibold text-zinc-300">Datos internacionales</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">País</label>
+                      <select className="input" value={form.pais} onChange={e => set("pais", e.target.value)}>
+                        {PAISES.map(p => <option key={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Moneda</label>
+                      <div className="flex gap-4 mt-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={form.moneda === "USD"} onChange={() => set("moneda", "USD")}/> USD
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={form.moneda === "CLP"} onChange={() => set("moneda", "CLP")}/> CLP
+                        </label>
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="label">Forma de pago</label>
+                      <select className="input" value={form.forma_pago} onChange={e => set("forma_pago", e.target.value)}>
+                        {FORMAS_PAGO.map(f => <option key={f}>{f}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Tipo contrato</label>
+                      <div className="flex gap-4 mt-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", true)}/> Indefinido
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={!form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", false)}/> Plazo fijo
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Días vacaciones tomados</label>
+                      <input className="input" type="number" value={form.dias_feriado_tomados} onChange={e => set("dias_feriado_tomados", e.target.value)}/>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-zinc-300">Previsión y salud</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">AFP</label>
+                      <select className="input" value={form.afp} onChange={e => set("afp", e.target.value)}>
+                        {AFPS.map(a => <option key={a}>{a}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Salud</label>
+                      <div className="flex gap-4 mt-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={form.es_fonasa} onChange={() => set("es_fonasa", true)}/> Fonasa
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={!form.es_fonasa} onChange={() => set("es_fonasa", false)}/> Isapre
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Tipo contrato</label>
+                      <div className="flex gap-4 mt-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", true)}/> Indefinido
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer text-zinc-300">
+                          <input type="radio" checked={!form.es_contrato_indefinido} onChange={() => set("es_contrato_indefinido", false)}/> Plazo fijo
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Días feriado tomados</label>
+                      <input className="input" type="number" value={form.dias_feriado_tomados} onChange={e => set("dias_feriado_tomados", e.target.value)}/>
+                    </div>
+                  </div>
+                  <hr className="border-zinc-800"/>
+                  <p className="text-sm font-semibold text-zinc-300">Cuenta bancaria</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="label">Banco</label>
+                      <input className="input" value={form.cuenta_banco} onChange={e => set("cuenta_banco", e.target.value)} placeholder="Banco Estado"/>
+                    </div>
+                    <div>
+                      <label className="label">Tipo</label>
+                      <select className="input" value={form.cuenta_tipo} onChange={e => set("cuenta_tipo", e.target.value)}>
+                        {CAUSALES_BANCO.map(t => <option key={t}>{t}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Número</label>
+                      <input className="input" value={form.cuenta_numero} onChange={e => set("cuenta_numero", e.target.value)}/>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex justify-end gap-3 p-6 border-t border-zinc-800">
               <button onClick={() => setForm(null)} className="btn-secondary">Cancelar</button>

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { empleadosApi, liquidacionesApi } from "../api/client";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, Globe } from "lucide-react";
 
-const fmt = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
+const fmtCLP = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
+const fmtUSD = n => n != null ? `USD ${Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "-";
+const fmt = (n, moneda) => moneda === "USD" ? fmtUSD(n) : fmtCLP(n);
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 export default function Liquidaciones() {
@@ -122,6 +124,13 @@ export default function Liquidaciones() {
 
       {resultado && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {resultado.es_extranjero && (
+            <div className="col-span-full flex items-center gap-3 bg-blue-900/20 border border-blue-800/50 rounded-xl px-4 py-3 text-sm text-blue-400">
+              <Globe size={16}/>
+              <span>Trabajador extranjero — sin descuentos legales chilenos · Moneda: <strong>{resultado.moneda || "USD"}</strong></span>
+            </div>
+          )}
+
           {/* Haberes */}
           <div className="card p-5">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Haberes</p>
@@ -136,12 +145,12 @@ export default function Liquidaciones() {
               ].map(([k,v]) => v > 0 && (
                 <div key={k} className="flex justify-between">
                   <span className="text-zinc-400">{k}</span>
-                  <span className="font-medium text-white">{fmt(v)}</span>
+                  <span className="font-medium text-white">{fmt(v, resultado.moneda)}</span>
                 </div>
               ))}
               <div className="flex justify-between pt-2 border-t border-zinc-800 font-semibold">
                 <span className="text-zinc-300">Total haberes</span>
-                <span className="text-brand-400">{fmt(resultado.total_haberes)}</span>
+                <span className="text-brand-400">{fmt(resultado.total_haberes, resultado.moneda)}</span>
               </div>
             </div>
           </div>
@@ -149,24 +158,31 @@ export default function Liquidaciones() {
           {/* Descuentos */}
           <div className="card p-5">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Descuentos</p>
-            <div className="space-y-2 text-sm">
-              {[
-                ["AFP (fondo pensiones)", resultado.fondo_pensiones],
-                ["Comisión AFP",          resultado.comision_afp],
-                ["AFC (cesantía)",        resultado.afc_trabajador],
-                ["Salud",                 resultado.salud],
-                ["Impuesto único",        resultado.impuesto_unico],
-              ].map(([k,v]) => v > 0 && (
-                <div key={k} className="flex justify-between">
-                  <span className="text-zinc-400">{k}</span>
-                  <span className="font-medium text-red-400">{fmt(v)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between pt-2 border-t border-zinc-800 font-semibold">
-                <span className="text-zinc-300">Total descuentos</span>
-                <span className="text-red-400">{fmt(resultado.total_descuentos)}</span>
+            {resultado.es_extranjero ? (
+              <div className="flex flex-col items-center justify-center h-24 text-zinc-600 text-sm text-center">
+                <Globe size={22} className="mb-2 opacity-40"/>
+                No aplican descuentos<br/>legales chilenos
               </div>
-            </div>
+            ) : (
+              <div className="space-y-2 text-sm">
+                {[
+                  ["AFP (fondo pensiones)", resultado.fondo_pensiones],
+                  ["Comisión AFP",          resultado.comision_afp],
+                  ["AFC (cesantía)",        resultado.afc_trabajador],
+                  ["Salud",                 resultado.salud],
+                  ["Impuesto único",        resultado.impuesto_unico],
+                ].map(([k,v]) => v > 0 && (
+                  <div key={k} className="flex justify-between">
+                    <span className="text-zinc-400">{k}</span>
+                    <span className="font-medium text-red-400">{fmt(v, resultado.moneda)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between pt-2 border-t border-zinc-800 font-semibold">
+                  <span className="text-zinc-300">Total descuentos</span>
+                  <span className="text-red-400">{fmt(resultado.total_descuentos, resultado.moneda)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Resumen */}
@@ -174,14 +190,18 @@ export default function Liquidaciones() {
             <div>
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Resumen</p>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Imponible</span>
-                  <span className="text-white">{fmt(resultado.haberes_imponibles)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Base tributable</span>
-                  <span className="text-white">{fmt(resultado.base_tributable)}</span>
-                </div>
+                {!resultado.es_extranjero && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Imponible</span>
+                      <span className="text-white">{fmt(resultado.haberes_imponibles, resultado.moneda)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Base tributable</span>
+                      <span className="text-white">{fmt(resultado.base_tributable, resultado.moneda)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Días trabajados</span>
                   <span className="text-white">{resultado.dias_trabajados}</span>
@@ -190,7 +210,7 @@ export default function Liquidaciones() {
             </div>
             <div className="mt-4 pt-4 border-t border-zinc-800">
               <p className="text-xs text-zinc-500 mb-1">Líquido a pagar</p>
-              <p className="text-3xl font-bold text-brand-400">{fmt(resultado.liquido_a_pagar)}</p>
+              <p className="text-3xl font-bold text-brand-400">{fmt(resultado.liquido_a_pagar, resultado.moneda)}</p>
               <p className="text-xs text-zinc-500 mt-1">{empSel?.nombre}</p>
             </div>
             <button onClick={guardar} disabled={guardando || guardado}
