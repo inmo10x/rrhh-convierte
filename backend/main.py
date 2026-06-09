@@ -10,6 +10,8 @@ from .auth import hash_password
 from .routers import empleados, liquidaciones, finiquitos, previred
 from .routers import auth as auth_router
 from .routers import activity_log as log_router
+from .routers import backup as backup_router
+from .routers.backup import crear_backup_startup
 
 app = FastAPI(title="RRHH Convierte", version="1.0.0")
 
@@ -31,12 +33,19 @@ app.include_router(finiquitos.router,      prefix="/api")
 app.include_router(previred.router,        prefix="/api")
 app.include_router(auth_router.router,     prefix="/api")
 app.include_router(log_router.router,      prefix="/api")
+app.include_router(backup_router.router,   prefix="/api")
 
 
 @app.on_event("startup")
 def startup():
     create_tables()
-    # Crear usuario admin por defecto si no existe ninguno
+
+    # ── Backup automático antes de cualquier cambio ──────────────────────────
+    # Se ejecuta en cada deploy. Si la DB tiene datos, los guarda en
+    # /data/backups/backup_YYYYMMDD_HHMMSS.json (mismo volumen persistente).
+    crear_backup_startup()
+
+    # ── Crear usuario admin por defecto si no existe ninguno ─────────────────
     db = SessionLocal()
     try:
         if db.query(UserDB).count() == 0:

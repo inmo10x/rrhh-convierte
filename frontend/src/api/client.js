@@ -50,4 +50,10 @@ export const previredApi = {
   exportar: (anio, mes) => api.get(`/previred/exportar/${anio}/${mes}`, { responseType: "blob" }).then(r => r.data),
 };
 
+export const backupApi = {
+  lista:          ()         => api.get("/backup/lista").then(r => r.data),
+  descargarUltimo: ()        => api.get("/backup/descargar-ultimo", { responseType: "blob" }).then(r => r.data),
+  descargar:      (filename) => api.get(`/backup/descargar/${filename}`, { responseType: "blob" }).then(r => r.data),
+};
+
 export default api;
