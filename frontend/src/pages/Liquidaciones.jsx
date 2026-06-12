@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { empleadosApi, liquidacionesApi } from "../api/client";
-import { Save, RefreshCw, Globe } from "lucide-react";
+import { Save, RefreshCw, Globe, FileDown } from "lucide-react";
 
 const fmtCLP = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
 const fmtUSD = n => n != null ? `USD ${Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "-";
@@ -43,20 +43,38 @@ export default function Liquidaciones() {
 
   useEffect(() => { simular(); }, [simular]);
 
+  const payload = () => ({
+    empleado_id: Number(empId), mes, anio,
+    dias_trabajados:  dias.trabajados,
+    dias_licencia:    dias.licencia,
+    dias_vacaciones:  dias.vacaciones,
+    dias_mes:         dias.mes,
+    horas_extras:     Number(extras.horas_extras),
+    comisiones:       Number(extras.comisiones),
+  });
+
   const guardar = async () => {
     if (!resultado) return;
     setGuardando(true);
-    await liquidacionesApi.guardar({
-      empleado_id: Number(empId), mes, anio,
-      dias_trabajados:  dias.trabajados,
-      dias_licencia:    dias.licencia,
-      dias_vacaciones:  dias.vacaciones,
-      dias_mes:         dias.mes,
-      horas_extras:     Number(extras.horas_extras),
-      comisiones:       Number(extras.comisiones),
-    });
+    await liquidacionesApi.guardar(payload());
     setGuardado(true);
     setGuardando(false);
+  };
+
+  const descargarPdf = async () => {
+    if (!resultado) return;
+    try {
+      const blob = await liquidacionesApi.pdf(payload());
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      const emp  = empleados.find(e => e.id === Number(empId));
+      a.href     = url;
+      a.download = `liquidacion_${(emp?.nombre || "").replace(/\s+/g, "_").toLowerCase()}_${anio}_${String(mes).padStart(2, "0")}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Error generando el PDF");
+    }
   };
 
   const empSel = empleados.find(e => e.id === Number(empId));
@@ -221,6 +239,11 @@ export default function Liquidaciones() {
               }`}>
               <Save size={15}/>
               {guardado ? "¡Guardado!" : guardando ? "Guardando..." : "Guardar liquidación"}
+            </button>
+            <button onClick={descargarPdf}
+              className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium btn-secondary">
+              <FileDown size={15}/>
+              Descargar PDF
             </button>
           </div>
         </div>

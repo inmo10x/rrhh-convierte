@@ -9,6 +9,7 @@ import Liquidaciones from "./pages/Liquidaciones";
 import Finiquitos   from "./pages/Finiquitos";
 import { Previred } from "./pages/index";
 import ActivityLog  from "./pages/ActivityLog";
+import Importar     from "./pages/Importar";
 
 function AppInner() {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ function AppInner() {
             <Route path="/finiquitos"    element={<Finiquitos />} />
             <Route path="/previred"      element={<Previred />} />
             <Route path="/historial"     element={<ActivityLog />} />
+            <Route path="/importar"      element={<Importar />} />
           </Routes>
         </main>
       </div>

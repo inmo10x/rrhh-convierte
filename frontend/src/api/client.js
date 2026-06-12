@@ -36,8 +36,18 @@ export const empleadosApi = {
 export const liquidacionesApi = {
   simular:     (data)       => api.post("/liquidaciones/simular", data).then(r => r.data),
   guardar:     (data)       => api.post("/liquidaciones/guardar", data).then(r => r.data),
+  pdf:         (data)       => api.post("/liquidaciones/pdf", data, { responseType: "blob" }).then(r => r.data),
   porMes:      (anio, mes)  => api.get(`/liquidaciones/mes/${anio}/${mes}`).then(r => r.data),
   porEmpleado: (id)         => api.get(`/liquidaciones/empleado/${id}`).then(r => r.data),
+};
+
+export const importarApi = {
+  plantilla: () => api.get("/importar/plantilla", { responseType: "blob" }).then(r => r.data),
+  liquidaciones: (file) => {
+    const fd = new FormData();
+    fd.append("archivo", file);
+    return api.post("/importar/liquidaciones", fd).then(r => r.data);
+  },
 };
 
 export const finiquitosApi = {

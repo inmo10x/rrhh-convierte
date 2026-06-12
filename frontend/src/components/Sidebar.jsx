@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Users, FileText, Calculator, Download, LayoutDashboard, Clock, LogOut, Sun, Moon, HardDrive } from "lucide-react";
+import { Users, FileText, Calculator, Download, LayoutDashboard, Clock, LogOut, Sun, Moon, HardDrive, Upload } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { backupApi } from "../api/client";
@@ -12,6 +12,7 @@ const links = [
   { to: "/finiquitos",    icon: FileText,        label: "Finiquitos"    },
   { to: "/previred",      icon: Download,        label: "Previred"      },
   { to: "/historial",     icon: Clock,           label: "Historial"     },
+  { to: "/importar",      icon: Upload,          label: "Importar"      },
 ];
 
 export default function Sidebar() {

@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import EmpleadoDB, LiquidacionDB, LiquidacionInput, UserDB
 from ..calculators.liquidacion_calc import calcular_liquidacion
+from ..generators.liquidacion_pdf import generar_liquidacion_pdf
 from ..auth import get_current_user
 from .activity_log import registrar
 
@@ -131,6 +133,51 @@ def guardar(
     registrar(db, user, "guardar", "liquidacion", liq.id,
               f"{emp.nombre} — {data.mes}/{data.anio}")
     return {"ok": True, "id": liq.id, **result}
+
+
+@router.post("/pdf")
+def descargar_pdf(
+    data: LiquidacionInput,
+    db: Session = Depends(get_db),
+    user: UserDB = Depends(get_current_user),
+):
+    emp = db.query(EmpleadoDB).filter(EmpleadoDB.id == data.empleado_id).first()
+    if not emp:
+        raise HTTPException(404, "Empleado no encontrado")
+
+    # Si existe una liquidación guardada para el período, usa esos valores
+    # (puede ser histórico importado); si no, calcula en el momento.
+    guardada = db.query(LiquidacionDB).filter(
+        LiquidacionDB.empleado_id == data.empleado_id,
+        LiquidacionDB.mes == data.mes,
+        LiquidacionDB.anio == data.anio,
+    ).first()
+
+    if guardada and guardada.resultado:
+        result = guardada.resultado
+    elif getattr(emp, "es_extranjero", False):
+        result = _calc_extranjero(emp, data)
+    else:
+        result = calcular_liquidacion(
+            **_emp_to_params(emp),
+            dias_trabajados=data.dias_trabajados,
+            dias_licencia=data.dias_licencia,
+            dias_vacaciones=data.dias_vacaciones,
+            dias_mes=data.dias_mes,
+            horas_extras_monto=data.horas_extras,
+            comisiones=data.comisiones,
+        )
+
+    pdf = generar_liquidacion_pdf(emp, data.mes, data.anio, result)
+    registrar(db, user, "generar", "liquidacion", guardada.id if guardada else None,
+              f"PDF {emp.nombre} — {data.mes}/{data.anio}")
+
+    nombre = f"liquidacion_{emp.nombre.replace(' ', '_').lower()}_{data.anio}_{data.mes:02d}.pdf"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
+    )
 
 
 @router.get("/mes/{anio}/{mes}")
