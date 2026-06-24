@@ -14,7 +14,7 @@ from .routers import backup as backup_router
 from .routers import importar as importar_router
 from .routers.backup import crear_backup_startup
 
-app = FastAPI(title="RRHH Convierte", version="1.0.0")
+app = FastAPI(title="RRHH Convierte", version="1.0.1")
 
 _allowed_origins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:8000"]
 if os.environ.get("RAILWAY_PUBLIC_DOMAIN"):
