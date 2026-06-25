@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { empleadosApi, liquidacionesApi } from "../api/client";
-import { Save, RefreshCw, Globe, FileDown, TrendingUp } from "lucide-react";
+import { Save, RefreshCw, Globe, FileDown, TrendingUp, CheckCircle } from "lucide-react";
 
 const fmtCLP = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
 const fmtUSD = n => n != null ? `USD ${Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "-";
@@ -13,14 +13,48 @@ export default function Liquidaciones() {
   const [anio, setAnio]     = useState(hoy.getFullYear());
   const [empleados, setEmpleados] = useState([]);
   const [empId, setEmpId]   = useState("");
+  const [historial, setHistorial] = useState([]);  // liquidaciones guardadas del empleado
+  const [diasGuardados, setDiasGuardados] = useState(false); // indica que se cargó un período guardado
   const [dias, setDias]     = useState({ trabajados:30, licencia:0, vacaciones:0, mes:30 });
   const [extras, setExtras] = useState({ horas_extras:0, comisiones:0 });
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado]   = useState(false);
+  const userEditing = useRef(false); // evita loop cuando el auto-load cambia inputs
 
   useEffect(() => { empleadosApi.listar().then(setEmpleados); }, []);
+
+  // Cargar historial cuando cambia el empleado
+  useEffect(() => {
+    if (!empId) { setHistorial([]); return; }
+    liquidacionesApi.porEmpleado(Number(empId)).then(setHistorial);
+  }, [empId]);
+
+  // Auto-cargar inputs cuando cambia empleado + mes + año
+  useEffect(() => {
+    if (!empId || userEditing.current) return;
+    const liq = historial.find(l => l.mes === mes && l.anio === anio);
+    if (liq) {
+      setDias({
+        trabajados: liq.dias_trabajados ?? 30,
+        licencia:   liq.dias_licencia   ?? 0,
+        vacaciones: liq.dias_vacaciones ?? 0,
+        mes:        liq.dias_mes        ?? 30,
+      });
+      setExtras({
+        horas_extras: liq.horas_extras ?? 0,
+        comisiones:   liq.comisiones   ?? 0,
+      });
+      setDiasGuardados(true);
+      setGuardado(true); // ya está guardado
+    } else {
+      setDias({ trabajados:30, licencia:0, vacaciones:0, mes:30 });
+      setExtras({ horas_extras:0, comisiones:0 });
+      setDiasGuardados(false);
+      setGuardado(false);
+    }
+  }, [empId, mes, anio, historial]);
 
   const simular = useCallback(async () => {
     if (!empId) return;
@@ -36,7 +70,6 @@ export default function Liquidaciones() {
         comisiones:       Number(extras.comisiones),
       });
       setResultado(r);
-      setGuardado(false);
     } catch(e) { console.error(e); }
     setLoading(false);
   }, [empId, mes, anio, dias, extras]);
@@ -57,6 +90,11 @@ export default function Liquidaciones() {
     if (!resultado) return;
     setGuardando(true);
     await liquidacionesApi.guardar(payload());
+    // Actualizar historial local para que el badge quede sincronizado
+    liquidacionesApi.porEmpleado(Number(empId)).then(h => {
+      setHistorial(h);
+      setDiasGuardados(true);
+    });
     setGuardado(true);
     setGuardando(false);
   };
@@ -77,6 +115,10 @@ export default function Liquidaciones() {
     }
   };
 
+  // Wrappers para inputs manuales: marcan que el usuario editó (no auto-load)
+  const setDiasUser  = fn => { userEditing.current = true; setDiasGuardados(false); setGuardado(false); setDias(fn); setTimeout(() => { userEditing.current = false; }, 50); };
+  const setExtrasUser = fn => { userEditing.current = true; setDiasGuardados(false); setGuardado(false); setExtras(fn); setTimeout(() => { userEditing.current = false; }, 50); };
+
   const empSel = empleados.find(e => e.id === Number(empId));
   const esVendedor = empSel?.es_vendedor;
 
@@ -91,24 +133,31 @@ export default function Liquidaciones() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
             <label className="label">Empleado</label>
-            <select className="input" value={empId} onChange={e => { setEmpId(e.target.value); setResultado(null); }}>
+            <select className="input" value={empId} onChange={e => { setEmpId(e.target.value); setResultado(null); userEditing.current = false; }}>
               <option value="">Seleccionar...</option>
               {empleados.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
             </select>
           </div>
           <div>
             <label className="label">Mes</label>
-            <select className="input" value={mes} onChange={e => setMes(Number(e.target.value))}>
+            <select className="input" value={mes} onChange={e => { userEditing.current = false; setMes(Number(e.target.value)); }}>
               {MESES.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
             </select>
           </div>
           <div>
             <label className="label">Año</label>
-            <input className="input" type="number" value={anio} onChange={e => setAnio(Number(e.target.value))}/>
+            <input className="input" type="number" value={anio} onChange={e => { userEditing.current = false; setAnio(Number(e.target.value)); }}/>
           </div>
           <div>
-            <label className="label">Días del mes</label>
-            <input className="input" type="number" value={dias.mes} onChange={e => setDias(d => ({...d, mes: Number(e.target.value)}))}/>
+            <label className="label">
+              Días del mes
+              {diasGuardados && (
+                <span className="ml-2 inline-flex items-center gap-1 text-green-400 text-xs font-normal">
+                  <CheckCircle size={11}/> cargado
+                </span>
+              )}
+            </label>
+            <input className="input" type="number" value={dias.mes} onChange={e => setDiasUser(d => ({...d, mes: Number(e.target.value)}))}/>
           </div>
         </div>
 
@@ -116,23 +165,26 @@ export default function Liquidaciones() {
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-zinc-800">
             <div>
               <label className="label">Días trabajados</label>
-              <input className="input" type="number" value={dias.trabajados} onChange={e => setDias(d => ({...d, trabajados: Number(e.target.value)}))}/>
+              <input className="input" type="number" value={dias.trabajados} onChange={e => setDiasUser(d => ({...d, trabajados: Number(e.target.value)}))}/>
             </div>
             <div>
               <label className="label">Días licencia médica</label>
-              <input className="input" type="number" value={dias.licencia} onChange={e => setDias(d => ({...d, licencia: Number(e.target.value)}))}/>
+              <input className="input" type="number" value={dias.licencia} onChange={e => setDiasUser(d => ({...d, licencia: Number(e.target.value)}))}/>
             </div>
             <div>
               <label className="label">Días vacaciones</label>
-              <input className="input" type="number" value={dias.vacaciones} onChange={e => setDias(d => ({...d, vacaciones: Number(e.target.value)}))}/>
+              <input className="input" type="number" value={dias.vacaciones} onChange={e => setDiasUser(d => ({...d, vacaciones: Number(e.target.value)}))}/>
             </div>
             <div>
               <label className="label">Horas extras ($)</label>
-              <input className="input" type="number" value={extras.horas_extras} onChange={e => setExtras(x => ({...x, horas_extras: e.target.value}))}/>
+              <input className="input" type="number" value={extras.horas_extras} onChange={e => setExtrasUser(x => ({...x, horas_extras: e.target.value}))}/>
             </div>
             <div className="col-span-2">
-              <label className="label">Comisiones ($){esVendedor && <span className="ml-2 text-amber-400 text-xs">· aplica semana corrida y promedio vacaciones</span>}</label>
-              <input className="input" type="number" value={extras.comisiones} onChange={e => setExtras(x => ({...x, comisiones: e.target.value}))}/>
+              <label className="label">
+                Comisiones ($)
+                {esVendedor && <span className="ml-2 text-amber-400 text-xs">· semana corrida + promedio vacaciones</span>}
+              </label>
+              <input className="input" type="number" value={extras.comisiones} onChange={e => setExtrasUser(x => ({...x, comisiones: e.target.value}))}/>
             </div>
           </div>
         )}
