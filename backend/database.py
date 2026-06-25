@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from .models import Base
 
@@ -15,6 +15,27 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_tables():
     Base.metadata.create_all(bind=engine)
+    _migrate()
+
+
+def _migrate():
+    """Agrega columnas nuevas a tablas existentes sin borrar datos (SQLite no soporta IF NOT EXISTS en ALTER TABLE)."""
+    migraciones = [
+        # (tabla, columna, tipo_sql)
+        ("empleados", "es_extranjero", "BOOLEAN DEFAULT FALSE"),
+        ("empleados", "pais",          "VARCHAR DEFAULT 'Chile'"),
+        ("empleados", "moneda",        "VARCHAR DEFAULT 'CLP'"),
+        ("empleados", "forma_pago",    "VARCHAR DEFAULT 'Transferencia bancaria'"),
+        ("empleados", "es_vendedor",   "BOOLEAN DEFAULT FALSE"),
+    ]
+    with engine.connect() as conn:
+        for tabla, columna, tipo in migraciones:
+            try:
+                conn.execute(text(f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}"))
+                conn.commit()
+                print(f"[migrate] Columna añadida: {tabla}.{columna}")
+            except Exception:
+                pass  # La columna ya existe — SQLite lanza error si se intenta agregar de nuevo
 
 
 def get_db():
