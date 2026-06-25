@@ -57,6 +57,8 @@ class EmpleadoDB(Base):
     pais                  = Column(String, default="Chile")
     moneda                = Column(String, default="CLP")   # "CLP" o "USD"
     forma_pago            = Column(String, default="Transferencia bancaria")
+    # Remuneración variable: semana corrida (CT Art. 45) + vacaciones promedio (CT Art. 71)
+    es_vendedor           = Column(Boolean, default=False)
     activo                = Column(Boolean, default=True)
     liquidaciones         = relationship("LiquidacionDB", back_populates="empleado", cascade="all, delete")
 
@@ -106,6 +108,7 @@ class EmpleadoCreate(BaseModel):
     pais: str = "Chile"
     moneda: str = "CLP"
     forma_pago: str = "Transferencia bancaria"
+    es_vendedor: bool = False
 
 
 class EmpleadoUpdate(EmpleadoCreate):

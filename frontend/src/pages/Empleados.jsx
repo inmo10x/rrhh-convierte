@@ -17,6 +17,7 @@ const EMPTY = {
   movilizacion:"", afp:"ProVida", es_fonasa:true, es_contrato_indefinido:true,
   dias_feriado_tomados:0, cuenta_banco:"Banco Estado", cuenta_tipo:"Cuenta RUT", cuenta_numero:"",
   es_extranjero:false, pais:"Chile", moneda:"CLP", forma_pago:"Transferencia bancaria",
+  es_vendedor:false,
 };
 
 const fmt = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
@@ -236,6 +237,23 @@ export default function Empleados() {
               </div>
 
               <hr className="border-zinc-800"/>
+              {/* Toggle vendedor (remuneración variable) */}
+              <div className="flex items-center justify-between bg-amber-900/20 border border-amber-800/30 rounded-xl px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                    <span className="text-amber-400">💼</span> Trabajador con remuneración variable
+                  </p>
+                  <p className="text-xs text-zinc-500">Activa semana corrida (art. 45) y vacaciones promedio 3 meses (art. 71)</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => set("es_vendedor", !form.es_vendedor)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${form.es_vendedor ? "bg-amber-500" : "bg-zinc-600"}`}
+                >
+                  <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${form.es_vendedor ? "translate-x-5" : ""}`}/>
+                </button>
+              </div>
+
               {/* Toggle extranjero */}
               <div className="flex items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-3">
                 <div>

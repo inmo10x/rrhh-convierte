@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { empleadosApi, liquidacionesApi } from "../api/client";
-import { Save, RefreshCw, Globe, FileDown } from "lucide-react";
+import { Save, RefreshCw, Globe, FileDown, TrendingUp } from "lucide-react";
 
 const fmtCLP = n => n != null ? `$${Math.round(n).toLocaleString("es-CL")}` : "-";
 const fmtUSD = n => n != null ? `USD ${Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "-";
@@ -78,6 +78,7 @@ export default function Liquidaciones() {
   };
 
   const empSel = empleados.find(e => e.id === Number(empId));
+  const esVendedor = empSel?.es_vendedor;
 
   return (
     <div className="p-6 space-y-6">
@@ -129,6 +130,10 @@ export default function Liquidaciones() {
               <label className="label">Horas extras ($)</label>
               <input className="input" type="number" value={extras.horas_extras} onChange={e => setExtras(x => ({...x, horas_extras: e.target.value}))}/>
             </div>
+            <div className="col-span-2">
+              <label className="label">Comisiones ($){esVendedor && <span className="ml-2 text-amber-400 text-xs">· aplica semana corrida y promedio vacaciones</span>}</label>
+              <input className="input" type="number" value={extras.comisiones} onChange={e => setExtras(x => ({...x, comisiones: e.target.value}))}/>
+            </div>
           </div>
         )}
       </div>
@@ -149,20 +154,36 @@ export default function Liquidaciones() {
             </div>
           )}
 
+          {esVendedor && (
+            <div className="col-span-full flex items-center gap-3 bg-amber-900/20 border border-amber-800/40 rounded-xl px-4 py-3 text-sm text-amber-400">
+              <TrendingUp size={16}/>
+              <span>
+                Remuneración variable activa —
+                {resultado.semana_corrida > 0 && ` semana corrida: ${fmtCLP(resultado.semana_corrida)} ·`}
+                {resultado.vacaciones_art71 > 0
+                  ? ` vacaciones calculadas por promedio 3 meses (art. 71): ${fmtCLP(resultado.vacaciones_art71)}`
+                  : " vacaciones: promedio 3 meses se activará cuando haya historial"}
+              </span>
+            </div>
+          )}
+
           {/* Haberes */}
           <div className="card p-5">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Haberes</p>
             <div className="space-y-2 text-sm">
               {[
-                ["Sueldo del mes",    resultado.sueldo_mes],
-                ["Gratificación",     resultado.gratificacion],
-                ["Bonos fijos",       resultado.bonos_fijos],
-                ["Horas extras",      resultado.horas_extras],
-                ["Colación",          resultado.colacion],
-                ["Movilización",      resultado.movilizacion],
+                ["Sueldo del mes",         resultado.sueldo_mes],
+                ["Gratificación",          resultado.gratificacion],
+                ["Bonos fijos",            resultado.bonos_fijos],
+                ["Horas extras",           resultado.horas_extras],
+                ["Comisiones",             resultado.comisiones],
+                ["Semana corrida",         resultado.semana_corrida],
+                ["Vacaciones (art. 71)",   resultado.vacaciones_art71],
+                ["Colación",               resultado.colacion],
+                ["Movilización",           resultado.movilizacion],
               ].map(([k,v]) => v > 0 && (
                 <div key={k} className="flex justify-between">
-                  <span className="text-zinc-400">{k}</span>
+                  <span className={`${k === "Semana corrida" || k === "Vacaciones (art. 71)" ? "text-amber-400/80" : "text-zinc-400"}`}>{k}</span>
                   <span className="font-medium text-white">{fmt(v, resultado.moneda)}</span>
                 </div>
               ))}
@@ -224,6 +245,12 @@ export default function Liquidaciones() {
                   <span className="text-zinc-400">Días trabajados</span>
                   <span className="text-white">{resultado.dias_trabajados}</span>
                 </div>
+                {resultado.dias_vacaciones > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Días vacaciones</span>
+                    <span className="text-white">{resultado.dias_vacaciones}</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-zinc-800">

@@ -24,6 +24,31 @@ def _emp_to_params(emp: EmpleadoDB) -> dict:
     }
 
 
+def _promedio_diario_3meses(db: Session, empleado_id: int, mes: int, anio: int) -> float | None:
+    """Promedio diario de los últimos 3 meses liquidados (CT Art. 71 — remuneración variable)."""
+    previos = []
+    m, a = mes, anio
+    for _ in range(3):
+        m -= 1
+        if m == 0:
+            m, a = 12, a - 1
+        previos.append((m, a))
+
+    totales = []
+    for m_prev, a_prev in previos:
+        liq = db.query(LiquidacionDB).filter(
+            LiquidacionDB.empleado_id == empleado_id,
+            LiquidacionDB.mes == m_prev,
+            LiquidacionDB.anio == a_prev,
+        ).first()
+        if liq and liq.resultado:
+            totales.append(liq.resultado.get("total_haberes", 0))
+
+    if not totales:
+        return None
+    return sum(totales) / (len(totales) * 30)
+
+
 def _calc_extranjero(emp: EmpleadoDB, data) -> dict:
     """Liquidación simplificada para trabajadores extranjeros (sin descuentos legales CL)."""
     factor = data.dias_trabajados / data.dias_mes if data.dias_mes else 1
@@ -68,6 +93,11 @@ def simular(
     if getattr(emp, "es_extranjero", False):
         result = _calc_extranjero(emp, data)
     else:
+        es_vendedor = getattr(emp, "es_vendedor", False)
+        promedio = (
+            _promedio_diario_3meses(db, emp.id, data.mes, data.anio)
+            if es_vendedor and data.dias_vacaciones > 0 else None
+        )
         result = calcular_liquidacion(
             **_emp_to_params(emp),
             dias_trabajados=data.dias_trabajados,
@@ -76,6 +106,10 @@ def simular(
             dias_mes=data.dias_mes,
             horas_extras_monto=data.horas_extras,
             comisiones=data.comisiones,
+            mes=data.mes,
+            anio=data.anio,
+            es_vendedor=es_vendedor,
+            promedio_diario_3meses=promedio,
         )
     return {"empleado": emp.nombre, "mes": data.mes, "anio": data.anio, **result}
 
@@ -93,6 +127,11 @@ def guardar(
     if getattr(emp, "es_extranjero", False):
         result = _calc_extranjero(emp, data)
     else:
+        es_vendedor = getattr(emp, "es_vendedor", False)
+        promedio = (
+            _promedio_diario_3meses(db, emp.id, data.mes, data.anio)
+            if es_vendedor and data.dias_vacaciones > 0 else None
+        )
         result = calcular_liquidacion(
             **_emp_to_params(emp),
             dias_trabajados=data.dias_trabajados,
@@ -101,6 +140,10 @@ def guardar(
             dias_mes=data.dias_mes,
             horas_extras_monto=data.horas_extras,
             comisiones=data.comisiones,
+            mes=data.mes,
+            anio=data.anio,
+            es_vendedor=es_vendedor,
+            promedio_diario_3meses=promedio,
         )
 
     existente = db.query(LiquidacionDB).filter(
@@ -158,6 +201,11 @@ def descargar_pdf(
     elif getattr(emp, "es_extranjero", False):
         result = _calc_extranjero(emp, data)
     else:
+        es_vendedor = getattr(emp, "es_vendedor", False)
+        promedio = (
+            _promedio_diario_3meses(db, emp.id, data.mes, data.anio)
+            if es_vendedor and data.dias_vacaciones > 0 else None
+        )
         result = calcular_liquidacion(
             **_emp_to_params(emp),
             dias_trabajados=data.dias_trabajados,
@@ -166,6 +214,10 @@ def descargar_pdf(
             dias_mes=data.dias_mes,
             horas_extras_monto=data.horas_extras,
             comisiones=data.comisiones,
+            mes=data.mes,
+            anio=data.anio,
+            es_vendedor=es_vendedor,
+            promedio_diario_3meses=promedio,
         )
 
     pdf = generar_liquidacion_pdf(emp, data.mes, data.anio, result)

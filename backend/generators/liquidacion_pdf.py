@@ -86,13 +86,15 @@ def generar_liquidacion_pdf(emp, mes: int, anio: int, res: dict) -> bytes:
 
     # ── Cuerpo: haberes | descuentos ──────────────────────────────────────
     haberes = [
-        ("Sueldo del mes",  res.get("sueldo_mes")),
-        ("Gratificación",   res.get("gratificacion")),
-        ("Bonos",           res.get("bonos_fijos")),
-        ("Horas extras",    res.get("horas_extras")),
-        ("Comisiones",      res.get("comisiones")),
-        ("Colación",        res.get("colacion")),
-        ("Movilización",    res.get("movilizacion")),
+        ("Sueldo del mes",        res.get("sueldo_mes")),
+        ("Gratificación",         res.get("gratificacion")),
+        ("Bonos",                 res.get("bonos_fijos")),
+        ("Horas extras",          res.get("horas_extras")),
+        ("Comisiones",            res.get("comisiones")),
+        ("Semana corrida",        res.get("semana_corrida")),
+        ("Vacaciones (art. 71)",  res.get("vacaciones_art71")),
+        ("Colación",              res.get("colacion")),
+        ("Movilización",          res.get("movilizacion")),
     ]
     descuentos = [
         ("Fondo de pensiones", res.get("fondo_pensiones")),
